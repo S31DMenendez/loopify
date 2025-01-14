@@ -11,9 +11,18 @@ import {
   List,
   Link,
   InlineStack,
+  InlineGrid,
+  TextField,
+  Label,
+  Popover,
+  OptionList,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
+import {useState} from "react";
+import {
+  CalendarIcon
+} from '@shopify/polaris-icons'
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
@@ -104,12 +113,119 @@ export default function Index() {
   }, [productId, shopify]);
   const generateProduct = () => fetcher.submit({}, { method: "POST" });
 
+  // This example is for guidance purposes. Copying it will come with caveats.
+function DateListPicker() {
+  const ranges = [
+    {
+      title: "Select",
+      alias: "no-date",
+      period: null,
+    },
+    {
+      title: "Monday",
+      alias: "mon",
+      period: {
+        since: "mon",
+        until: "mon",
+      },
+    },
+    {
+      title: "Tuesday",
+      alias: "tue",
+      period: {
+        since: "tue",
+        until: "tue",
+      },
+    },
+    {
+      title: "Wednesday",
+      alias: "wed",
+      period: {
+        since: "wed",
+        until: "wed",
+      },
+    },
+    {
+      title: "Thursday",
+      alias: "thu",
+      period: {
+        since: "thu",
+        until: "thu",
+      },
+    },
+    {
+      title: "Friday",
+      alias: "fri",
+      period: {
+        since: "fri",
+        until: "fri",
+      },
+    },
+    {
+      title: "Saturday",
+      alias: "sat",
+      period: {
+        since: "sat",
+        until: "sat",
+      },
+    },
+    {
+      title: "Sunday",
+      alias: "sun",
+      period: {
+        since: "sun",
+        until: "sun",
+      },
+    },
+  ];
+  const [selected, setSelected] = useState(ranges[0]);
+  const [popoverActive, setPopoverActive] = useState(false);
   return (
-    <Page>
-      <TitleBar title="Remix app template">
-        <button variant="primary" onClick={generateProduct}>
-          Generate a product
-        </button>
+    <Popover
+      autofocusTarget="none"
+      preferredAlignment="left"
+      preferInputActivator={false}
+      preferredPosition="below"
+      activator={
+        <Button
+          onClick={() => setPopoverActive(!popoverActive)}
+          icon={CalendarIcon}
+        >
+          {selected.title}
+        </Button>
+      }
+      active={popoverActive}
+    >
+      <OptionList
+        options={ranges.map((range) => ({
+          value: range.alias,
+          label: range.title,
+        }))}
+        selected={selected.alias}
+        onChange={(value) => {
+          setSelected(ranges.find((range) => range.alias === value[0]));
+          setPopoverActive(false);
+        }}
+      />
+    </Popover>
+  )
+}
+
+  return (
+    <Page
+    divider
+    primaryAction={{ content: "View on your store", disabled: true }}
+    secondaryActions={[
+      {
+        content: "Duplicate",
+        accessibilityLabel: "Secondary action label",
+        onAction: () => alert("Duplicate action"),
+      },
+    ]}>
+      <TitleBar title="Loopify Configuration">
+        {/*<button variant="primary" onClick={generateProduct}>
+          Configure
+        </button>*/}
       </TitleBar>
       <BlockStack gap="500">
         <Layout>
@@ -118,50 +234,35 @@ export default function Index() {
               <BlockStack gap="500">
                 <BlockStack gap="200">
                   <Text as="h2" variant="headingMd">
-                    Congrats on creating a new Shopify app 🎉
+                    When do you want to receive your products?
                   </Text>
-                  <Text variant="bodyMd" as="p">
-                    This embedded app template uses{" "}
-                    <Link
-                      url="https://shopify.dev/docs/apps/tools/app-bridge"
-                      target="_blank"
-                      removeUnderline
-                    >
-                      App Bridge
-                    </Link>{" "}
-                    interface examples like an{" "}
-                    <Link url="/app/additional" removeUnderline>
-                      additional page in the app nav
-                    </Link>
-                    , as well as an{" "}
-                    <Link
-                      url="https://shopify.dev/docs/api/admin-graphql"
-                      target="_blank"
-                      removeUnderline
-                    >
-                      Admin GraphQL
-                    </Link>{" "}
-                    mutation demo, to provide a starting point for app
-                    development.
-                  </Text>
+                  <InlineGrid columns={{ xs: "1fr", md: "2fr 5fr" }} gap="400">
+                  <Box
+                    as="section"
+                    paddingInlineStart={{ xs: 400, sm: 0 }}
+                    paddingInlineEnd={{ xs: 400, sm: 0 }}
+                  >
+                    <BlockStack gap="400">
+                      <Text as="h3" variant="headingMd">
+                        Details
+                      </Text>
+                    </BlockStack>
+                  </Box>
+                  <Card roundedAbove="sm">
+                    <BlockStack gap="400">
+                      <Text as="p" fontWeight="medium">
+                        Select how many times you want to receive your products
+                      </Text>
+                      <DateListPicker /> 
+                      <Text as="p" fontWeight="medium">
+                        Select the days you want to receive your products
+                      </Text>
+                      <DateListPicker /> 
+                    </BlockStack>
+                  </Card>
+                </InlineGrid>
                 </BlockStack>
-                <BlockStack gap="200">
-                  <Text as="h3" variant="headingMd">
-                    Get started with products
-                  </Text>
-                  <Text as="p" variant="bodyMd">
-                    Generate a product with GraphQL and get the JSON output for
-                    that product. Learn more about the{" "}
-                    <Link
-                      url="https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate"
-                      target="_blank"
-                      removeUnderline
-                    >
-                      productCreate
-                    </Link>{" "}
-                    mutation in our API references.
-                  </Text>
-                </BlockStack>
+                
                 <InlineStack gap="300">
                   <Button loading={isLoading} onClick={generateProduct}>
                     Generate a product
