@@ -16,12 +16,16 @@ import {
   Label,
   Popover,
   OptionList,
+  Divider,
+  RadioButton,
+  LegacyStack
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import {useState} from "react";
+import {useState, useCallback} from "react";
+import { useNavigate } from '@remix-run/react';
 import {
-  CalendarIcon
+  CalendarIcon, ComposeIcon
 } from '@shopify/polaris-icons'
 
 export const loader = async ({ request }) => {
@@ -29,6 +33,7 @@ export const loader = async ({ request }) => {
 
   return null;
 };
+
 
 export const action = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
@@ -105,6 +110,9 @@ export default function Index() {
     "gid://shopify/Product/",
     "",
   );
+
+  
+
 
   useEffect(() => {
     if (productId) {
@@ -211,7 +219,59 @@ function DateListPicker() {
   )
 }
 
+const Placeholder = ({
+  label = '',
+  height = 'auto',
+  width = 'auto',
+  minHeight = 'auto',
+  padding = '6px 0px',
+  strong = false,
+}) => {
   return (
+    <div
+      style={{
+        padding: padding,
+        height: height,
+        width: width,
+        minHeight: minHeight,
+      }}
+    >
+      <InlineStack align="center">
+        <div>
+          <Text
+            as="h2"
+            variant="headingMd"
+            tone="base"
+            style={{ fontWeight: strong ? "bold" : "normal" }}
+          >
+            {label}
+          </Text>
+        </div>
+      </InlineStack>
+    </div>
+  );
+};
+
+const [value, setValue] = useState('disabled');
+
+
+
+const handleChange = useCallback(
+  
+  (_checked, newValue) => {
+    setValue(newValue),
+    console.log(newValue);
+
+      // Inicializa la navegación
+    
+
+    // Redirecciona a la página deseada
+  }
+);
+
+
+  return (
+    
     <Page
     divider
     primaryAction={{ content: "View on your store", disabled: true }}
@@ -222,7 +282,7 @@ function DateListPicker() {
         onAction: () => alert("Duplicate action"),
       },
     ]}>
-      <TitleBar title="Loopify Configuration">
+      <TitleBar title="Loopify">
         {/*<button variant="primary" onClick={generateProduct}>
           Configure
         </button>*/}
@@ -230,197 +290,38 @@ function DateListPicker() {
       <BlockStack gap="500">
         <Layout>
           <Layout.Section>
-            <Card>
-              <BlockStack gap="500">
-                <BlockStack gap="200">
-                  <Text as="h2" variant="headingMd">
-                    When do you want to receive your products?
-                  </Text>
-                  <InlineGrid columns={{ xs: "1fr", md: "2fr 5fr" }} gap="400">
-                  <Box
-                    as="section"
-                    paddingInlineStart={{ xs: 400, sm: 0 }}
-                    paddingInlineEnd={{ xs: 400, sm: 0 }}
-                  >
-                    <BlockStack gap="400">
-                      <Text as="h3" variant="headingMd">
-                        Details
-                      </Text>
-                    </BlockStack>
-                  </Box>
-                  <Card roundedAbove="sm">
-                    <BlockStack gap="400">
-                      <Text as="p" fontWeight="medium">
-                        Select how many times you want to receive your products
-                      </Text>
-                      <DateListPicker /> 
-                      <Text as="p" fontWeight="medium">
-                        Select the days you want to receive your products
-                      </Text>
-                      <DateListPicker /> 
-                    </BlockStack>
-                  </Card>
-                </InlineGrid>
-                </BlockStack>
-                
-                <InlineStack gap="300">
-                  <Button loading={isLoading} onClick={generateProduct}>
-                    Generate a product
-                  </Button>
-                  {fetcher.data?.product && (
-                    <Button
-                      url={`shopify:admin/products/${productId}`}
-                      target="_blank"
-                      variant="plain"
-                    >
-                      View product
-                    </Button>
-                  )}
-                </InlineStack>
-                {fetcher.data?.product && (
-                  <>
-                    <Text as="h3" variant="headingMd">
-                      {" "}
-                      productCreate mutation
-                    </Text>
-                    <Box
-                      padding="400"
-                      background="bg-surface-active"
-                      borderWidth="025"
-                      borderRadius="200"
-                      borderColor="border"
-                      overflowX="scroll"
-                    >
-                      <pre style={{ margin: 0 }}>
-                        <code>
-                          {JSON.stringify(fetcher.data.product, null, 2)}
-                        </code>
-                      </pre>
-                    </Box>
-                    <Text as="h3" variant="headingMd">
-                      {" "}
-                      productVariantsBulkUpdate mutation
-                    </Text>
-                    <Box
-                      padding="400"
-                      background="bg-surface-active"
-                      borderWidth="025"
-                      borderRadius="200"
-                      borderColor="border"
-                      overflowX="scroll"
-                    >
-                      <pre style={{ margin: 0 }}>
-                        <code>
-                          {JSON.stringify(fetcher.data.variant, null, 2)}
-                        </code>
-                      </pre>
-                    </Box>
-                  </>
-                )}
-              </BlockStack>
+            <Card roundedAbove="sm">
+              <Text as="h2" variant="headingSm">
+                Configuration
+              </Text>
+              <Box paddingBlockStart="200">
+                <Text as="p" variant="bodyMd">
+                  Configure your product variants.
+                </Text>
+              </Box>
+              <br></br>
+              <Divider />
+              <InlineStack blockAlign="baseline">
+                <Placeholder width="100px" label="Period" strong={true} />
+                <RadioButton
+                  label="Set indefinitely"
+                  helpText="There's no expiration date for receiving products."
+                  id="disabled"
+                  name="accounts"
+                  onChange={handleChange}
+                  checked={value === 'disabled'}
+                />
+                <RadioButton
+                  label="Set schedule"
+                  helpText="Customers will be able to define the period when receiving the products."
+                  id="optional"
+                  name="accounts"
+                  onChange={handleChange}
+                  checked={value === 'optional'}
+                />
+              </InlineStack>
+            
             </Card>
-          </Layout.Section>
-          <Layout.Section variant="oneThird">
-            <BlockStack gap="500">
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="h2" variant="headingMd">
-                    App template specs
-                  </Text>
-                  <BlockStack gap="200">
-                    <InlineStack align="space-between">
-                      <Text as="span" variant="bodyMd">
-                        Framework
-                      </Text>
-                      <Link
-                        url="https://remix.run"
-                        target="_blank"
-                        removeUnderline
-                      >
-                        Remix
-                      </Link>
-                    </InlineStack>
-                    <InlineStack align="space-between">
-                      <Text as="span" variant="bodyMd">
-                        Database
-                      </Text>
-                      <Link
-                        url="https://www.prisma.io/"
-                        target="_blank"
-                        removeUnderline
-                      >
-                        Prisma
-                      </Link>
-                    </InlineStack>
-                    <InlineStack align="space-between">
-                      <Text as="span" variant="bodyMd">
-                        Interface
-                      </Text>
-                      <span>
-                        <Link
-                          url="https://polaris.shopify.com"
-                          target="_blank"
-                          removeUnderline
-                        >
-                          Polaris
-                        </Link>
-                        {", "}
-                        <Link
-                          url="https://shopify.dev/docs/apps/tools/app-bridge"
-                          target="_blank"
-                          removeUnderline
-                        >
-                          App Bridge
-                        </Link>
-                      </span>
-                    </InlineStack>
-                    <InlineStack align="space-between">
-                      <Text as="span" variant="bodyMd">
-                        API
-                      </Text>
-                      <Link
-                        url="https://shopify.dev/docs/api/admin-graphql"
-                        target="_blank"
-                        removeUnderline
-                      >
-                        GraphQL API
-                      </Link>
-                    </InlineStack>
-                  </BlockStack>
-                </BlockStack>
-              </Card>
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="h2" variant="headingMd">
-                    Next steps
-                  </Text>
-                  <List>
-                    <List.Item>
-                      Build an{" "}
-                      <Link
-                        url="https://shopify.dev/docs/apps/getting-started/build-app-example"
-                        target="_blank"
-                        removeUnderline
-                      >
-                        {" "}
-                        example app
-                      </Link>{" "}
-                      to get started
-                    </List.Item>
-                    <List.Item>
-                      Explore Shopify’s API with{" "}
-                      <Link
-                        url="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
-                        target="_blank"
-                        removeUnderline
-                      >
-                        GraphiQL
-                      </Link>
-                    </List.Item>
-                  </List>
-                </BlockStack>
-              </Card>
-            </BlockStack>
           </Layout.Section>
         </Layout>
       </BlockStack>
