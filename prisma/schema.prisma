@@ -30,3 +30,13 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
+
+model schedule{
+  id Int @id @default(autoincrement())
+  shop String
+  scheduleType Int
+  dayOfWeek Int
+  dateStart DateTime 
+  dateEnd DateTime 
+  createdAt DateTime @default(now())
+}

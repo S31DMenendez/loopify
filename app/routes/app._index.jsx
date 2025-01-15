@@ -18,12 +18,15 @@ import {
   OptionList,
   Divider,
   RadioButton,
-  LegacyStack
+  Icon,
+  DatePicker,
+  FormLayout,
+  
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import {useState, useCallback} from "react";
-import { useNavigate } from '@remix-run/react';
+import {useState, useCallback, useRef} from "react";
+import { useNavigate, useLoaderData, Form } from '@remix-run/react';
 import {
   CalendarIcon, ComposeIcon
 } from '@shopify/polaris-icons'
@@ -36,7 +39,12 @@ export const loader = async ({ request }) => {
 
 
 export const action = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
+  console.log("Action submitted");
+  let settings = await request.formData();
+  settings=Object.fromEntries(settings);
+  
+  console.log({ settings }); // Procesa
+  /*const { admin } = await authenticate.admin(request);
   const color = ["Red", "Orange", "Yellow", "Green"][
     Math.floor(Math.random() * 4)
   ];
@@ -97,10 +105,12 @@ export const action = async ({ request }) => {
   return {
     product: responseJson.data.productCreate.product,
     variant: variantResponseJson.data.productVariantsBulkUpdate.productVariants,
-  };
+  };*/
 };
 
 export default function Index() {
+  const indexLoopify  = useLoaderData();
+  const [formState, setFormState]=useState(indexLoopify);
   const fetcher = useFetcher();
   const shopify = useAppBridge();
   const isLoading =
@@ -111,10 +121,7 @@ export default function Index() {
     "",
   );
 
-  
-
-
-  useEffect(() => {
+useEffect(() => {
     if (productId) {
       shopify.toast.show("Product created");
     }
@@ -189,33 +196,33 @@ function DateListPicker() {
   const [selected, setSelected] = useState(ranges[0]);
   const [popoverActive, setPopoverActive] = useState(false);
   return (
-    <Popover
+    <><Text as="h5" variant="base" style="margin-bottom: 25px;">
+      Day of the week you will receive the product.
+    </Text><Popover
       autofocusTarget="none"
       preferredAlignment="left"
       preferInputActivator={false}
       preferredPosition="below"
-      activator={
-        <Button
-          onClick={() => setPopoverActive(!popoverActive)}
-          icon={CalendarIcon}
-        >
-          {selected.title}
-        </Button>
-      }
+      width="100px"
+      activator={<Button
+        onClick={() => setPopoverActive(!popoverActive)}
+        icon={CalendarIcon}
+      >
+        {selected.title}
+      </Button>}
       active={popoverActive}
     >
-      <OptionList
-        options={ranges.map((range) => ({
-          value: range.alias,
-          label: range.title,
-        }))}
-        selected={selected.alias}
-        onChange={(value) => {
-          setSelected(ranges.find((range) => range.alias === value[0]));
-          setPopoverActive(false);
-        }}
-      />
-    </Popover>
+        <OptionList
+          options={ranges.map((range) => ({
+            value: range.alias,
+            label: range.title,
+          }))}
+          selected={selected.alias}
+          onChange={(value) => {
+            setSelected(ranges.find((range) => range.alias === value[0]));
+            setPopoverActive(false);
+          } } />
+      </Popover></>
   )
 }
 
@@ -253,23 +260,116 @@ const Placeholder = ({
 };
 
 const [value, setValue] = useState('disabled');
-
-
+const [showCardScheduler, setShowCardScheduler] = useState(false);
+const [showCardUnlimited, setShowCardUnlimited] = useState(false);
+const [valueTF, setValueTF] = useState('');
 
 const handleChange = useCallback(
-  
   (_checked, newValue) => {
-    setValue(newValue),
+    setValue(newValue);
     console.log(newValue);
 
-      // Inicializa la navegación
-    
-
-    // Redirecciona a la página deseada
-  }
+    if (newValue === 'optional') {
+      setShowCardScheduler(true);
+      setShowCardUnlimited(false);
+    }else{
+      setShowCardScheduler(false);
+      setShowCardUnlimited(true);
+    }
+  },
+  []
 );
 
+const handleChangeTF = (event) => {
+  setValueTF(event.target.value); // Actualiza el estado con el valor ingresado
+};
 
+const DatePickerExample = ({ label }) => {
+  function nodeContainsDescendant(rootNode, descendant) {
+    if (rootNode === descendant) {
+      return true;
+    }
+    let parent = descendant.parentNode;
+    while (parent != null) {
+      if (parent === rootNode) {
+        return true;
+      }
+      parent = parent.parentNode;
+    }
+    return false;
+  }
+  const [visible, setVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [{ month, year }, setDate] = useState({
+    month: selectedDate.getMonth(),
+    year: selectedDate.getFullYear(),
+  });
+  const formattedValue = selectedDate.toISOString().slice(0, 10);
+  const datePickerRef = useRef(null);
+  function isNodeWithinPopover(node) {
+    return datePickerRef?.current
+      ? nodeContainsDescendant(datePickerRef.current, node)
+      : false;
+  }
+  function handleInputValueChange() {
+    console.log("handleInputValueChange");
+  }
+  function handleOnClose({ relatedTarget }) {
+    setVisible(false);
+  }
+  function handleMonthChange(month, year) {
+    setDate({ month, year });
+  }
+  function handleDateSelection({ end: newSelectedDate }) {
+    setSelectedDate(newSelectedDate);
+    setVisible(false);
+  }
+  useEffect(() => {
+    if (selectedDate) {
+      setDate({
+        month: selectedDate.getMonth(),
+        year: selectedDate.getFullYear(),
+      });
+    }
+  }, [selectedDate]);
+  return (
+    <BlockStack inlineAlign="center" gap="400">
+      <Box minWidth="276px" padding={{ xs: 200 }}>
+        <Popover
+          active={visible}
+          autofocusTarget="none"
+          preferredAlignment="left"
+          fullWidth
+          preferInputActivator={false}
+          preferredPosition="below"
+          preventCloseOnChildOverlayClick
+          onClose={handleOnClose}
+          activator={
+            <TextField
+              role="combobox"
+              label={label}
+              prefix={<Icon source={CalendarIcon} />}
+              value={formattedValue}
+              onFocus={() => setVisible(true)}
+              onChange={handleInputValueChange}
+              autoComplete="off"
+            />
+          }
+        >
+          <Card ref={datePickerRef}>
+            <DatePicker
+              month={month}
+              year={year}
+              selected={selectedDate}
+              onMonthChange={handleMonthChange}
+              onChange={handleDateSelection}
+            />
+          </Card>
+        </Popover>
+      </Box>
+    </BlockStack>
+  )
+}
   return (
     
     <Page
@@ -301,6 +401,7 @@ const handleChange = useCallback(
               </Box>
               <br></br>
               <Divider />
+              <br></br>
               <InlineStack blockAlign="baseline">
                 <Placeholder width="100px" label="Period" strong={true} />
                 <RadioButton
@@ -309,7 +410,7 @@ const handleChange = useCallback(
                   id="disabled"
                   name="accounts"
                   onChange={handleChange}
-                  checked={value === 'disabled'}
+                  checked={value === 'disabled' }
                 />
                 <RadioButton
                   label="Set schedule"
@@ -320,9 +421,66 @@ const handleChange = useCallback(
                   checked={value === 'optional'}
                 />
               </InlineStack>
-            
             </Card>
           </Layout.Section>
+          {showCardScheduler &&
+          <Layout.Section>
+            <Card>
+              <Text as="h2" variant="headingSm">
+                Schedule Deliveries
+              </Text>
+              <Box paddingBlockStart="200">
+                <Text as="p" variant="bodyMd">
+                  Setup the period you will be receiving your products.
+                </Text>
+              </Box>
+              <br></br>
+              <Divider />
+              <br></br>
+              <FormLayout>
+                <FormLayout.Group>
+                <DatePickerExample name="startDate" value={formState?.startDate} label="Start date" />
+                <DatePickerExample name="EndDate" value={formState?.endDate} label="End date"/>
+                </FormLayout.Group>
+                {/* <TextField label="Times per Week" name="times" value={formState?.times} onChange={(value)=>setFormState({...formState,times:value})}  autoComplete="off" />*/}
+                <DateListPicker />
+              </FormLayout>
+              <br></br>
+              <br></br>
+              <Form method="POST">
+              <TextField label="Times per Week" name="times" value={formState?.times} onChange={(value)=>setFormState({...formState,times:value})}  autoComplete="off" />
+              </Form>
+              <Button fullWidth submit={true}>Save</Button>
+            </Card>
+          </Layout.Section>
+          }
+          {showCardUnlimited &&
+          <Layout.Section>
+            <Card>
+            <Text as="h2" variant="headingSm">
+                Schedule Deliveries
+              </Text>
+              <Box paddingBlockStart="200">
+                <Text as="p" variant="bodyMd">
+                  Setup the day you will be receiving you products.
+                </Text>
+              </Box>
+              <br></br>
+              <Divider />
+              <br></br>
+              <Form >
+              <FormLayout >
+                {/* <TextField label="Times per Week" name="times" value={formState?.times} onChange={(value)=>setFormState({...formState,times:value})}  autoComplete="off" />*/}
+                <TextField label="App name" value={formState?.name} name="name" onChange={(value)=>setFormState({...formState,name:value})} />
+                {/*<DateListPicker name="weekDay" value={formState?.weekDay}/>*/}
+              </FormLayout>
+              </ Form>
+              <br></br>
+              <br></br>
+              <Button fullWidth >Save</Button>
+            </Card>
+          </Layout.Section>
+          }
         </Layout>
       </BlockStack>
     </Page>

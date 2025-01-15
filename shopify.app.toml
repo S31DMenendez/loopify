@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "b1679dfc1013ccec9cec19ff4bcf74da"
-application_url = "https://volumes-include-dial-print.trycloudflare.com"
+application_url = "https://action-london-struck-corruption.trycloudflare.com"
 embedded = true
 name = "loopify"
 handle = "loopify-4"
@@ -23,9 +23,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://volumes-include-dial-print.trycloudflare.com/auth/callback",
-  "https://volumes-include-dial-print.trycloudflare.com/auth/shopify/callback",
-  "https://volumes-include-dial-print.trycloudflare.com/api/auth/callback"
+  "https://action-london-struck-corruption.trycloudflare.com/auth/callback",
+  "https://action-london-struck-corruption.trycloudflare.com/auth/shopify/callback",
+  "https://action-london-struck-corruption.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
