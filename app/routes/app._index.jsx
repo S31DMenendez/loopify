@@ -37,7 +37,6 @@ export const loader = async ({ request }) => {
   return null;
 };
 
-
 export const action = async ({ request }) => {
   console.log("Action submitted");
   let settings = await request.formData();
@@ -399,88 +398,8 @@ const DatePickerExample = ({ label }) => {
                   Configure your product variants.
                 </Text>
               </Box>
-              <br></br>
-              <Divider />
-              <br></br>
-              <InlineStack blockAlign="baseline">
-                <Placeholder width="100px" label="Period" strong={true} />
-                <RadioButton
-                  label="Set indefinitely"
-                  helpText="There's no expiration date for receiving products."
-                  id="disabled"
-                  name="accounts"
-                  onChange={handleChange}
-                  checked={value === 'disabled' }
-                />
-                <RadioButton
-                  label="Set schedule"
-                  helpText="Customers will be able to define the period when receiving the products."
-                  id="optional"
-                  name="accounts"
-                  onChange={handleChange}
-                  checked={value === 'optional'}
-                />
-              </InlineStack>
-            </Card>
-          </Layout.Section>
-          {showCardScheduler &&
-          <Layout.Section>
-            <Card>
-              <Text as="h2" variant="headingSm">
-                Schedule Deliveries
-              </Text>
-              <Box paddingBlockStart="200">
-                <Text as="p" variant="bodyMd">
-                  Setup the period you will be receiving your products.
-                </Text>
-              </Box>
-              <br></br>
-              <Divider />
-              <br></br>
-              <FormLayout>
-                <FormLayout.Group>
-                <DatePickerExample name="startDate" value={formState?.startDate} label="Start date" />
-                <DatePickerExample name="EndDate" value={formState?.endDate} label="End date"/>
-                </FormLayout.Group>
-                {/* <TextField label="Times per Week" name="times" value={formState?.times} onChange={(value)=>setFormState({...formState,times:value})}  autoComplete="off" />*/}
-                <DateListPicker />
-              </FormLayout>
-              <br></br>
-              <br></br>
-              <Form method="POST">
-              <TextField label="Times per Week" name="times" value={formState?.times} onChange={(value)=>setFormState({...formState,times:value})}  autoComplete="off" />
-              </Form>
-              <Button fullWidth submit={true}>Save</Button>
-            </Card>
-          </Layout.Section>
-          }
-          {showCardUnlimited &&
-          <Layout.Section>
-            <Card>
-            <Text as="h2" variant="headingSm">
-                Schedule Deliveries
-              </Text>
-              <Box paddingBlockStart="200">
-                <Text as="p" variant="bodyMd">
-                  Setup the day you will be receiving you products.
-                </Text>
-              </Box>
-              <br></br>
-              <Divider />
-              <br></br>
-              <Form >
-              <FormLayout >
-                {/* <TextField label="Times per Week" name="times" value={formState?.times} onChange={(value)=>setFormState({...formState,times:value})}  autoComplete="off" />*/}
-                <TextField label="App name" value={formState?.name} name="name" onChange={(value)=>setFormState({...formState,name:value})} />
-                {/*<DateListPicker name="weekDay" value={formState?.weekDay}/>*/}
-              </FormLayout>
-              </ Form>
-              <br></br>
-              <br></br>
-              <Button fullWidth >Save</Button>
-            </Card>
-          </Layout.Section>
-          }
+            </ Card >
+          </ Layout.Section >
         </Layout>
       </BlockStack>
     </Page>

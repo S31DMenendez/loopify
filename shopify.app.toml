@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "b1679dfc1013ccec9cec19ff4bcf74da"
-application_url = "https://action-london-struck-corruption.trycloudflare.com"
+application_url = "https://lenders-conviction-payment-pregnancy.trycloudflare.com"
 embedded = true
 name = "loopify"
 handle = "loopify-4"
@@ -23,9 +23,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://action-london-struck-corruption.trycloudflare.com/auth/callback",
-  "https://action-london-struck-corruption.trycloudflare.com/auth/shopify/callback",
-  "https://action-london-struck-corruption.trycloudflare.com/api/auth/callback"
+  "https://lenders-conviction-payment-pregnancy.trycloudflare.com/auth/callback",
+  "https://lenders-conviction-payment-pregnancy.trycloudflare.com/auth/shopify/callback",
+  "https://lenders-conviction-payment-pregnancy.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

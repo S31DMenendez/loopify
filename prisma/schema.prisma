@@ -36,7 +36,18 @@ model schedule{
   shop String
   scheduleType Int
   dayOfWeek Int
-  dateStart DateTime 
-  dateEnd DateTime 
+  dateStart DateTime
+  dateEnd DateTime
   createdAt DateTime @default(now())
+}
+
+model register{
+  id Int @id @default(autoincrement())
+  name String
+  lastName String
+  email String
+  address String
+  city String
+  country String
+  phone Int
 }
