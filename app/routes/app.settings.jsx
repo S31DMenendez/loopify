@@ -18,7 +18,7 @@ import {
   Icon,
   DatePicker,
   FormLayout,
-
+  LegacyStack
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useState,useCallback, useRef, useEffect } from "react";
@@ -27,8 +27,9 @@ import { useLoaderData,Form } from "@remix-run/react";
 import {
   CalendarIcon, ComposeIcon
 } from '@shopify/polaris-icons'
-
 import db from "../db.server";
+
+let dayOfWeekGen=0;
 
 export async function loader() {
   let settings=await db.schedule.findFirst();
@@ -36,36 +37,32 @@ export async function loader() {
 }
 
 export async function action({request}) {
-  /*let settings = await request.formData();
-  settings=Object.fromEntries(settings);
-  console.log("aqui acrion")
-  await db.test.upsert({
-    where:{
-      id:1
-    },
-    update:{
-      test: settings.description
-    },
-    create:{
-      id: 1,
-      test: settings.description
-    }
-  });
-
-  return json(settings);*/
   let settings = await request.formData();
   settings=Object.fromEntries(settings);
-
-  await db.schedule.create({
-    
-    data:{
-      shop: "local",
-      scheduleType: 2,
-      dayOfWeek: getDayNumber(settings.dayOfWeek),
-      dateStart: new Date(settings.dateStart),
-      dateEnd: new Date(settings.dateEnd),
-    }
-  });
+  console.log(settings.dayOfWeek)
+  
+  if(settings.type==1){
+    await db.schedule.create({
+      data:{
+        shop: "local",
+        scheduleType: 1,
+        dayOfWeek: getDayNumber(settings.daysOfWeek),
+        dateStart: new Date(settings.dateStart),
+        dateEnd: new Date(settings.dateEnd),
+      }
+    });
+  }else{
+    await db.schedule.create({
+      data:{
+        shop: "local",
+        scheduleType: 2,
+        dayOfWeek: getDayNumber(settings.daysOfWeek),
+        dateStart: new Date(now()),
+        dateEnd: new Date(now()),
+      }
+    });
+  }
+  
 
   return json(settings);
   
@@ -74,117 +71,91 @@ export async function action({request}) {
 
 const getDayNumber = (dayName) => {
   // Crear un objeto de mapeo para los días
-  const daysMap = {
-    "Monday": 1,
-    "Tuesday": 2,
-    "Wednesday": 3,
-    "Thursday": 4,
-    "Friday": 5,
-    "Saturday": 6,
-    "Sunday": 7,
-  };
-  console.log(dayName)
-  // Retornar el número correspondiente o null si no es válido
-  return daysMap[dayName] || 0;
+  switch (dayName){
+    case "monday":
+      return 1;
+    case "tuesday":
+      return 2;
+    case "wednesday":
+      return 3;
+    case "thursday":
+      return 4;
+    case "friday":
+      return 5;
+    case "saturday":
+      return 6;
+    case "sunday":
+      return 7;
+    default: 0;
+  }
 };
 
-function DateListPicker() {
+const DateListPicker = ({ onChange }) => {
   const ranges = [
-    {
-      title: "Select",
-      alias: "no-date",
-      period: null,
-    },
-    {
-      title: "Monday",
-      alias: "mon",
-      period: {
-        since: "mon",
-        until: "mon",
-      },
-    },
-    {
-      title: "Tuesday",
-      alias: "tue",
-      period: {
-        since: "tue",
-        until: "tue",
-      },
-    },
-    {
-      title: "Wednesday",
-      alias: "wed",
-      period: {
-        since: "wed",
-        until: "wed",
-      },
-    },
-    {
-      title: "Thursday",
-      alias: "thu",
-      period: {
-        since: "thu",
-        until: "thu",
-      },
-    },
-    {
-      title: "Friday",
-      alias: "fri",
-      period: {
-        since: "fri",
-        until: "fri",
-      },
-    },
-    {
-      title: "Saturday",
-      alias: "sat",
-      period: {
-        since: "sat",
-        until: "sat",
-      },
-    },
-    {
-      title: "Sunday",
-      alias: "sun",
-      period: {
-        since: "sun",
-        until: "sun",
-      },
-    },
+    { title: "Select", alias: "no-date", period: null },
+    { title: "Monday", alias: "mon", period: { since: "mon", until: "mon" } },
+    { title: "Tuesday", alias: "tue", period: { since: "tue", until: "tue" } },
+    { title: "Wednesday", alias: "wed", period: { since: "wed", until: "wed" } },
+    { title: "Thursday", alias: "thu", period: { since: "thu", until: "thu" } },
+    { title: "Friday", alias: "fri", period: { since: "fri", until: "fri" } },
+    { title: "Saturday", alias: "sat", period: { since: "sat", until: "sat" } },
+    { title: "Sunday", alias: "sun", period: { since: "sun", until: "sun" } },
   ];
+
   const [selected, setSelected] = useState(ranges[0]);
-  const [popoverActive, setPopoverActive] = useState(false);
+  const [popoverActive, setPopoverActive] = useState(false);  // Aquí defines popoverActive
+
+  const handleSelectChange = (value) => {
+    setSelected(ranges.find((range) => range.alias === value[0]));
+    onChange(value[0]);  // Llamamos a onChange para actualizar el valor en el componente padre
+    setPopoverActive(false);  // Cierra el Popover al seleccionar una opción
+  };
+
   return (
-    <><Text as="h5" variant="base" style="margin-bottom: 25px;">
-      Day of the week you will receive the product.
-    </Text><Popover
-      autofocusTarget="none"
-      preferredAlignment="left"
-      preferInputActivator={false}
-      preferredPosition="below"
-      width="100px"
-      activator={<Button
-        onClick={() => setPopoverActive(!popoverActive)}
-        icon={CalendarIcon}
-      >
-        {selected.title}
-      </Button>}
+    <Popover
       active={popoverActive}
+      onClose={() => setPopoverActive(false)}
+      activator={<Button icon={CalendarIcon} onClick={() => setPopoverActive(!popoverActive)}>{selected.title} </Button>}
     >
-        <OptionList
-          options={ranges.map((range) => ({
-            value: range.alias,
-            label: range.title,
-          }))}
-          selected={selected.alias}
-          name="dayOfWeek"
-          onChange={(value) => {
-            setSelected(ranges.find((range) => range.alias === value[0]));
-            setPopoverActive(false);
-          } } />
-      </Popover></>
-  )
+      <OptionList
+        options={ranges.map((range) => ({ value: range.alias, label: range.title }))}
+        selected={selected.alias}
+        onChange={handleSelectChange}
+        onClick={() => { dayOfWeekGen = selected.alias; }}
+        name="dayOfWeek"
+      />
+    </Popover>
+  );
+};
+
+function DaySelector({ selectedDay, onDayChange }) {
+  const daysOfWeek = [
+    { label: 'Monday', value: 'monday' },
+    { label: 'Tuesday', value: 'tuesday' },
+    { label: 'Wednesday', value: 'wednesday' },
+    { label: 'Thursday', value: 'thursday' },
+    { label: 'Friday', value: 'friday' },
+    { label: 'Saturday', value: 'saturday' },
+    { label: 'Sunday', value: 'sunday' },
+  ];
+
+  return (
+    <LegacyStack vertical>
+      {daysOfWeek.map((day) => (
+        <RadioButton
+          key={day.value}
+          label={day.label}
+          checked={selectedDay === day.value} // Marca el seleccionado
+          id={day.value}
+          name="daysOfWeek"
+          value={day.value}
+          onChange={() => onDayChange(day.value)} // Llama al callback del padre
+        />
+      ))}
+    </LegacyStack>
+  );
 }
+
 
 export default function SettingsPage() {
   const { smUp } = useBreakpoints(); 
@@ -225,9 +196,16 @@ export default function SettingsPage() {
     );
   };
 
+  const handleDayOfWeekChange = (newDay) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      dayOfWeek: newDay, // Actualizar el estado con el nuevo día de la semana
+    }));
+  };
+
   const [value, setValue] = useState('disabled');
   const [showCardScheduler, setShowCardScheduler] = useState(false);
-  const [showCardUnlimited, setShowCardUnlimited] = useState(false);
+  const [showCardUnlimited, setShowCardUnlimited] = useState(true);
   
   const handleChange = useCallback(
     (_checked, newValue) => {
@@ -333,7 +311,26 @@ export default function SettingsPage() {
       </BlockStack>
     )
   }
- 
+
+  const [valueDay, setValueDay] = useState('disabled');
+
+  const handleChangeDay = useCallback(
+    (newValue) => setValue(newValue),  // Actualiza el valor seleccionado
+    [],
+  );
+
+  const [selectedDay, setSelectedDay] = useState('monday'); // Estado en el padre
+
+  const handleDayChange = useCallback((day) => {
+    setSelectedDay(day); // Actualiza el estado
+  }, []);
+
+  const handleSave = () => {
+    console.log(`Selected day: ${selectedDay}`);
+    dayOfWeekGen = getDayNumber(selectedDay);
+    settings.daysOfWeek=selectedDay;
+  };
+  
   return (
     <Page divider
     primaryAction={{ content: "View on your store", disabled: true }}
@@ -401,44 +398,50 @@ export default function SettingsPage() {
                     <DatePickerExample date="1" value={formState?.dateStart} label="Start date" />
                     <DatePickerExample date="2" value={formState?.dateEnd} label="End date"/>
                     </FormLayout.Group>
+                  </FormLayout>
+                  <br></br>
+                  <Box paddingBlockStart="200">
+                    <Text as="p" variant="bodyMd">
+                      Select the day of the week you want to receive you products.
+                    </Text>
+                  </Box>
+                  <br></br>
+                  <DaySelector value={formState?.daysOfWeek} />
+                  
+                  <TextField value={formState?.type} type="hidden"/>
+                  <Button fullWidth submit={true} >Save</Button>
+                  </Form>
+                </Card>
+              </Layout.Section>
+              }
+              {showCardUnlimited &&
+              <Layout.Section>
+                <Card>
+                  <Text as="h2" variant="headingSm">
+                    Schedule Deliveries
+                  </Text>
+                  <Box paddingBlockStart="200">
+                    <Text as="p" variant="bodyMd">
+                      Setup the day you will receive you products with no time limit.
+                    </Text>
+                  </Box>
+                  <br></br>
+                  <Divider />
+                  <br></br>
+                  <Form method="POST">
+                  <FormLayout>
                     {/* <TextField label="Times per Week" name="times" value={formState?.times} onChange={(value)=>setFormState({...formState,times:value})}  autoComplete="off" />*/}
-                    <DateListPicker value={formState?.dayOfWeek} onChange={(value)=>setFormState({...formState,dayOfWeek:value})}/>
+                    <DaySelector selectedDay={selectedDay} onDayChange={handleDayChange} />
                   </FormLayout>
                   <br></br>
                   <br></br>
-                  <Button fullWidth submit={true}>Save</Button>
+                  <TextField value={formState?.type=1} type="hidden"/>
+                  <Button fullWidth submit={true} onClick={handleSave} >Save</Button>
                   </Form>
                 </Card>
               </Layout.Section>
               }
         </Layout>
-      </BlockStack>
-      <BlockStack gap={{ xs: "800", sm: "400" }}>
-        <InlineGrid columns={{ xs: "1fr", md: "2fr 5fr" }} gap="400">
-          <Box
-            as="section"
-            paddingInlineStart={{ xs: 400, sm: 0 }}
-            paddingInlineEnd={{ xs: 400, sm: 0 }}
-          >
-            <BlockStack gap="400">
-              <Text as="h3" variant="headingMd">
-                Settings
-              </Text>
-              <Text as="p" variant="bodyMd">
-                Interjambs are the rounded protruding bits of your puzzlie piece
-              </Text>
-            </BlockStack>
-          </Box>
-          <Card roundedAbove="sm">
-            <Form method="POST">
-            <BlockStack gap="400">
-              <TextField label="App name" value={formState?.name} name="name" onChange={(value)=>setFormState({...formState,name:value})} />
-              <TextField label="App description" name="description" value={formState?.description} onChange={(value)=>setFormState({...formState, description:value})}/>
-              <Button submit={true}>Save</Button>
-            </BlockStack>
-            </Form>
-          </Card>
-        </InlineGrid>
       </BlockStack>
     </Page>
   );

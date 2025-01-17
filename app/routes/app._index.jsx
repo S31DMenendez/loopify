@@ -26,7 +26,7 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import {useState, useCallback, useRef} from "react";
-import { useNavigate, useLoaderData, Form } from '@remix-run/react';
+import { useLoaderData,Form,useActionData,useNavigate } from "@remix-run/react";
 import {
   CalendarIcon, ComposeIcon
 } from '@shopify/polaris-icons'
@@ -38,73 +38,7 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
-  console.log("Action submitted");
-  let settings = await request.formData();
-  settings=Object.fromEntries(settings);
-  
-  console.log({ settings }); // Procesa
-  /*const { admin } = await authenticate.admin(request);
-  const color = ["Red", "Orange", "Yellow", "Green"][
-    Math.floor(Math.random() * 4)
-  ];
-  const response = await admin.graphql(
-    `#graphql
-      mutation populateProduct($product: ProductCreateInput!) {
-        productCreate(product: $product) {
-          product {
-            id
-            title
-            handle
-            status
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  price
-                  barcode
-                  createdAt
-                }
-              }
-            }
-          }
-        }
-      }`,
-    {
-      variables: {
-        product: {
-          title: `${color} Snowboard`,
-        },
-      },
-    },
-  );
-  const responseJson = await response.json();
-  const product = responseJson.data.productCreate.product;
-  const variantId = product.variants.edges[0].node.id;
-  const variantResponse = await admin.graphql(
-    `#graphql
-    mutation shopifyRemixTemplateUpdateVariant($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
-        productVariants {
-          id
-          price
-          barcode
-          createdAt
-        }
-      }
-    }`,
-    {
-      variables: {
-        productId: product.id,
-        variants: [{ id: variantId, price: "100.00" }],
-      },
-    },
-  );
-  const variantResponseJson = await variantResponse.json();
-
-  return {
-    product: responseJson.data.productCreate.product,
-    variant: variantResponseJson.data.productVariantsBulkUpdate.productVariants,
-  };*/
+  navigate("/app/settings");
 };
 
 export default function Index() {
@@ -331,6 +265,9 @@ const DatePickerExample = ({ label }) => {
       });
     }
   }, [selectedDate]);
+
+  const navigate = useNavigate();
+  
   return (
     <BlockStack inlineAlign="center" gap="400">
       <Box minWidth="276px" padding={{ xs: 200 }}>
@@ -365,6 +302,7 @@ const DatePickerExample = ({ label }) => {
             />
           </Card>
         </Popover>
+        <Button fullWidth submit={true} >Getting started!</Button>
       </Box>
     </BlockStack>
   )
